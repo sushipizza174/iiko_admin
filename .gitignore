@@ -1,0 +1,13 @@
+node_modules
+
+.svelte-kit
+
+# build output
+data/
+
+# macOS-specific files
+.DS_Store
+
+# jetbrains setting folder
+.idea/
+src/.DS_Store
