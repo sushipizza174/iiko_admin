@@ -1,5 +1,4 @@
 <script>
-  import {server} from '../core/server.js'
   import {_store} from '../core/_store.js'
   import {onMount} from 'svelte'
   
