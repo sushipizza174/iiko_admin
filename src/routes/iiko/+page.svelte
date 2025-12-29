@@ -8,18 +8,12 @@
     import { beforeUpdate, onMount } from "svelte";
     import {_store} from "../../core/_store"
     import { Input } from "$lib/components/ui/input/index.js";
-    import Cross2 from "svelte-radix/Cross2.svelte";
     import * as Dialog from "$lib/components/ui/dialog/index.js";
     import { utils } from "../../core/utils"
     import { Button } from "$lib/components/ui/button/index.js";
     import Loader from "$lib/components/ui/Loader.svelte";
-    import CrossCircled from "svelte-radix/CrossCircled.svelte";
-    import PlusCircled from "svelte-radix/PlusCircled.svelte";
     import * as Popover from "$lib/components/ui/popover/index.js";
     import * as Command from "$lib/components/ui/command/index.js";
-    import CaretSort from "svelte-radix/CaretSort.svelte";
-    import Check from "svelte-radix/Check.svelte";
-    import ExclamationTriangle from "svelte-radix/ExclamationTriangle.svelte";
     import { cn } from "$lib/utils.js";
     import { tick } from "svelte";
     import { ScrollArea } from "$lib/components/ui/scroll-area/index.js";
@@ -28,7 +22,8 @@
     import { toast } from "svelte-sonner";
     import * as Tooltip from "$lib/components/ui/tooltip/index.js";
     import { Badge } from "$lib/components/ui/badge";
-
+    import {
+    X, Plus, ChevronsUpDown, Check, AlertTriangle} from "@lucide/svelte";
 
     let products = []
     // let products_orig = []
@@ -288,7 +283,7 @@
                     class="w-48 font-normal justify-between"
                 >
                     {selected_group}
-                    <CaretSort class="ml-2 h-4 w-4 shrink-0 opacity-50" />
+                    <ChevronsUpDown class="ml-2 h-4 w-4 shrink-0 opacity-50" />
                 </Button>
             </Popover.Trigger>
             <Popover.Content class="p-0">
@@ -352,7 +347,7 @@
                             <Table.Head>Изображение</Table.Head>
                             <Table.Head class="relative w-40">
                                 <Input type="text" placeholder="Название" bind:value={filters.name} />
-                                <button on:click={() => filters.name = ''} class="absolute top-1/2 right-3 transform -translate-y-1/2"><Cross2 class="w-3 h-3 text-gray-400" /></button>
+                                <button on:click={() => filters.name = ''} class="absolute top-1/2 right-3 transform -translate-y-1/2"><X class="w-3 h-3 text-gray-400" /></button>
                             </Table.Head>
                             <Table.Head>Фильтры</Table.Head>
                             <Table.Head>Удалить</Table.Head>
@@ -417,7 +412,7 @@
                                                                             edit_product.img = edit_product.img.filter((_, i) => i !== index)
                                                                         }}
                                                                         on:keydown={(e) => { if (e.key === 'Enter' || e.key === ' ') { edit_product.img = edit_product.img.filter((_, index) => index !== index) } }}>
-                                                                        <CrossCircled class="text-red-600 h-5 w-5 ml-1" />
+                                                                        <X class="text-red-600 h-5 w-5 ml-1" />
                                                                     </div>
                                                                 </div>
                                                                 <p class="text-[12px] w-20 text-wrap break-all">{(img !== 'load') ? img : 'Дождитесь загрузки файла!'}</p>
@@ -428,7 +423,7 @@
                                                     <label class="cursor-pointer" on:change={uploadFile}>
                                                         <input type="file" class="absolute inset-0 w-full h-full opacity-0 pointer-events-none" />
                                                         <Button variant="outline" class="pointer-events-none">
-                                                            <PlusCircled class="text-gray-400 h-4 w-4 mr-2" /> 
+                                                            <Plus circle={true} class="text-gray-400 h-4 w-4 mr-2" /> 
                                                             Добавить файл
                                                         </Button>
                                                     </label>
@@ -446,7 +441,7 @@
                                                                         role="combobox"
                                                                         class="border-none p-0 m-0 hover:bg-transparent shadow-none rounded-full h-min"
                                                                     >
-                                                                        <PlusCircled class="text-gray-400 h-5 w-5 mt-[3px] mr-2" />
+                                                                        <Plus circle={true} class="text-gray-400 h-5 w-5 mt-[3px] mr-2" />
                                                                     </Button>
                                                                 </Popover.Trigger>
                                                                 <Popover.Content class="p-0">
@@ -489,7 +484,7 @@
                                                                         >
                                                                             <Badge variant="outline" class="cursor-pointer mr-2 mb-1">
                                                                                 {roll.name} 
-                                                                                <Cross2 class="h-2.5 w-2.5 ml-1 2 mt-0.5" />
+                                                                                <X class="h-2.5 w-2.5 ml-1 2 mt-0.5" />
                                                                             </Badge>
                                                                         </div>
                                                                     {/each}
@@ -570,7 +565,7 @@
             {#if logs.sets_without_count.length > 0}
                 <div class="shadow-lg rounded-xl px-4 py-2 max-w-[270px] bg-red-100">
                     <div class="flex gap-3 items-center">
-                        <ExclamationTriangle class="text-primary w-5" />
+                        <AlertTriangle class="text-primary w-5" />
                         <p class="font-bold">Наборы без количества:</p>
                     </div>
                     <ul class="ml-12 list-disc">
@@ -584,7 +579,7 @@
             {#if logs.rolls_without_category.length > 0}
                 <div class="shadow-lg rounded-xl px-4 py-2 max-w-[280px] bg-red-100">
                     <div class="flex gap-3 items-center">
-                        <ExclamationTriangle class="text-primary w-5" />
+                        <AlertTriangle class="text-primary w-5" />
                         <p class="font-bold">Роллы без подкатегории:</p>
                     </div>
                     <ul class="ml-12 list-disc">
@@ -598,7 +593,7 @@
             {#if logs.products_with_incorrect_marks.length > 0}
                 <div class="border shadow-lg rounded-xl px-4 py-2 max-w-[280px] bg-red-100">
                     <div class="flex gap-3 items-center">
-                        <ExclamationTriangle class="text-primary w-5" />
+                        <AlertTriangle class="text-primary w-5" />
                         <p class="font-bold text-left">Плашки не совпадают <br /> с "остро" и "новинка":</p>
                     </div> 
                     <ul class="ml-12 list-disc">

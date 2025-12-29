@@ -4,25 +4,20 @@
 	import { Button } from "$lib/components/ui/button/index.js";
 	import * as DropdownMenu from "$lib/components/ui/dropdown-menu";
 	import { resetMode, setMode } from "mode-watcher";
-	import { Moon, Sun } from 'svelte-radix';
     import { _store } from '../core/_store';
 	import * as Avatar from "$lib/components/ui/avatar/index.js";
 	import { goto } from '$app/navigation';
     import { onMount } from 'svelte';
-
 	import { Input } from "$lib/components/ui/input/index.js";
 	import * as Popover from "$lib/components/ui/popover/index.js";
 	import * as Command from "$lib/components/ui/command/index.js";
-	import CaretSort from "svelte-radix/CaretSort.svelte";
-	import Check from "svelte-radix/Check.svelte";
 	import { cn } from "$lib/utils.js";
 	import { tick } from "svelte";
 	import * as Dialog from "$lib/components/ui/dialog/index.js";
 	import { Separator } from "$lib/components/ui/separator/index.js";
 	import * as Accordion from "$lib/components/ui/accordion";
 	import { ScrollArea } from "$lib/components/ui/scroll-area/index.js";
-	import Pencil2 from "svelte-radix/Pencil2.svelte";
-	import CrossCircled from "svelte-radix/CrossCircled.svelte";
+    import { Moon, Sun, Check, Pencil, X, ChevronsUpDown } from "@lucide/svelte";
 
 	const Exit = (m)=>{
         localStorage.removeItem('token')
@@ -84,7 +79,7 @@
 					class="w-40 font-normal justify-between"
 				>
 					{selected_city}
-					<CaretSort class="ml-2 h-4 w-4 shrink-0 opacity-50" />
+					<ChevronsUpDown class="ml-2 h-4 w-4 shrink-0 opacity-50" />
 				</Button>
 			</Popover.Trigger>
 			<Popover.Content class="p-0 w-40">
@@ -133,7 +128,7 @@
 						  <Accordion.Content>
 							На главной странице отображается список товаров СушиПицца74. Доступна фильтрация товаров по названию, категории и составу. 
 					  
-							Для редактирования товара нажмите на иконку <Pencil2 class="w-4 h-4 mx-1 inline" /> в правом столбце таблицы товаров.
+							Для редактирования товара нажмите на иконку <Pencil class="w-4 h-4 mx-1 inline" /> в правом столбце таблицы товаров.
 					  
 							<p class="font-bold mt-2">Описание полей:</p>
 							<ul class="list-disc ml-5 mt-1 mb-5">
@@ -152,7 +147,7 @@
 								<li><strong>Категория ролла</strong> — используется для разделения роллов на категории. Для добавления новой категории перейдите в раздел "Доп. настройки".</li>
 								<li><strong>Количество роллов</strong> — для наборов роллов, показывает количество штук, входящих в набор.</li>
 								<li><strong>Состав</strong> — отображает компоненты товара для фильтрации на сайте. Для наборов роллов компонентами являются готовые роллы. Если компонента отсутствует в списке, её необходимо добавить на главной странице.</li>
-								<li><strong>Изображение</strong> — картинка товара. Можно добавить несколько изображений и удалить их при необходимости, нажав на иконку <CrossCircled class="text-red-600 w-4 h-4 inline" />.</li>
+								<li><strong>Изображение</strong> — картинка товара. Можно добавить несколько изображений и удалить их при необходимости, нажав на иконку <X class="text-red-600 w-4 h-4 inline" />.</li>
 							</ul>
 					  
 							<p>Ниже редактируемых полей находятся товары, входящие в данную группу. Чтобы перенести товар в другую группу, нажмите "Перенести" и выберите нужную группу.</p>
@@ -177,7 +172,7 @@
 						  <Accordion.Content>
 							При добавлении нового товара из ТП может некорректно определиться категория или название товара. В таком случае нужно создать новую группу товара и перенести товары в нужную группу.
 					  
-							После добавления новой группы товара, найдите её в списке товаров, нажмите на иконку <Pencil2 class="w-4 h-4 mx-1 inline" />, затем нажмите кнопку "Перенести" в нижней части окна и выберите нужную группу.
+							После добавления новой группы товара, найдите её в списке товаров, нажмите на иконку <Pencil class="w-4 h-4 mx-1 inline" />, затем нажмите кнопку "Перенести" в нижней части окна и выберите нужную группу.
 						  </Accordion.Content>
 						</Accordion.Item>
 					  
