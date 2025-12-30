@@ -18,42 +18,35 @@
 	import * as Accordion from "$lib/components/ui/accordion";
 	import { ScrollArea } from "$lib/components/ui/scroll-area/index.js";
     import { Moon, Sun, Check, Pencil, X, ChevronsUpDown } from "@lucide/svelte";
+    import { _auth, _city, _site_settings } from '$lib/store.svelte';
+
+	let open_city = $state('')
+    let cities = $state('')
 
 	const Exit = (m)=>{
         localStorage.removeItem('token')
-        _store.val('auth',false)
-        _store.val('user',{})
+        _auth.is_authenticated = false
+        _auth.user = {}
     }
 
-	const getName = ()=>{
-		let name = $_store.user.first_name ? $_store.user.first_name : $_store.user.username
+	const get_name = ()=>{
+		let name = _auth.user.first_name ? _auth.user.first_name : _auth.user.username
 		return name ? name.toUpperCase().substring(0, 2) : '?'
 	}
 
-	let cities;
 	onMount(()=>{
 		let interval;
-		if ($_store.site_settings.length === 0) {
+		if (_site_settings.length === 0) {
 			interval = setInterval(() => {
-				if ($_store.site_settings.length > 0) {
+				if (_site_settings.length > 0) {
 					clearInterval(interval);
-					cities = $_store.site_settings.find(s => s.id == 'city').data
+					cities = _site_settings.list.find(s => s.id == 'city')?.data
 				}
 			},1000)
 		} else {
-			cities = $_store.site_settings.find(s => s.id == 'city').data
+			cities = _site_settings.list.find(s => s.id == 'city')?.data
 		}
 	})
-
-	const closeAndFocusTrigger = (triggerId) => {
-		open = false
-		tick().then(() => { document.getElementById(triggerId)?.focus() });
-	}
-
-	let open
-	$: city = $_store.city
-	$: selected_city = cities?.find(c => c.id === city).name ?? 'Город';
-
 </script>
 
 <header class="w-full top-0 flex py-2 items-center justify-between gap-4 border-b bg-background px-4 fixed bg-white dark:bg-stone-950 z-10">
@@ -70,15 +63,15 @@
     </nav>
 	<div class="flex items-center gap-4 md:ml-auto md:gap-2 lg:gap-4"></div>
     <div class="flex items-center gap-4 md:ml-auto md:gap-2 lg:gap-4">
-		<Popover.Root bind:open let:ids>
-			<Popover.Trigger asChild let:builder class="w-60">
+		<Popover.Root bind:open={open_city}>
+			<Popover.Trigger asChild class="w-60">
 				<Button
-					builders={[builder]}
 					variant="outline"
 					role="combobox"
+                    aria-expanded={open_city}
 					class="w-40 font-normal justify-between"
 				>
-					{selected_city}
+					{((cities && Array.isArray(cities)) ? cities.find(c => c.id === _city)?.name : null) ?? 'Город'}
 					<ChevronsUpDown class="ml-2 h-4 w-4 shrink-0 opacity-50" />
 				</Button>
 			</Popover.Trigger>
@@ -88,10 +81,9 @@
 						{#each cities as c}
 							<Command.Item
 								value={c.id}
-								onSelect={(currentValue) => {
-									_store.val('city', c.id);
+								onSelect={() => {
+                                    localStorage.setItem('city', c.id)
 									setTimeout(() => location.reload(), 100); 
-									closeAndFocusTrigger(ids.trigger);
 								}}>
 								<Check class={cn( "mr-2 h-4 w-4",  city !== c.id && "text-transparent")}  />
 								{c.name}
@@ -103,7 +95,7 @@
 		</Popover.Root>
 
 		<Dialog.Root>
-			<Dialog.Trigger><Button variant="outline">Помощь</Button></Dialog.Trigger>
+			<Dialog.Trigger><div><Button variant="outline">Помощь</Button></div></Dialog.Trigger>
 			<Dialog.Content class="max-w-[80%]">
 				<Dialog.Header><Dialog.Title>Инструкция по использованию</Dialog.Title></Dialog.Header>
 				<ScrollArea class="h-[80vh]">					
@@ -326,32 +318,18 @@
 		</Dialog.Root>
 
 		<DropdownMenu.Root>
-			<DropdownMenu.Trigger asChild let:builder>
-				<Button builders={[builder]} variant="link" size="icon">
+			<DropdownMenu.Trigger>
+                <div>
+				<Button variant="link" size="icon">
 					<Avatar.Root>
-						<Avatar.Image src={$_store.user.photo_url} alt={getName()} />
-						<Avatar.Fallback>{getName()}</Avatar.Fallback>
+						<Avatar.Image src={_auth.user.photo_url} alt={get_name()} />
+						<Avatar.Fallback>{get_name()}</Avatar.Fallback>
 					</Avatar.Root>
 				</Button>
+                </div>
 			</DropdownMenu.Trigger>
 			<DropdownMenu.Content align="end">
-			<DropdownMenu.Item on:click={() => Exit()}>Выход</DropdownMenu.Item>
-			</DropdownMenu.Content>
-		</DropdownMenu.Root>
-
-		
-		<DropdownMenu.Root>
-			<DropdownMenu.Trigger asChild let:builder>
-				<Button builders={[builder]} variant="outline" size="icon">
-					<Sun class="h-[1.2rem] w-[1.2rem] rotate-0 scale-100 transition-all dark:-rotate-90 dark:scale-0"/>
-					<Moon class="absolute h-[1.2rem] w-[1.2rem] rotate-90 scale-0 transition-all dark:rotate-0 dark:scale-100"/>
-					<span class="sr-only">Toggle theme</span>
-				</Button>
-			</DropdownMenu.Trigger>
-			<DropdownMenu.Content align="end">
-				<DropdownMenu.Item on:click={() => setMode("light")}>Светлая</DropdownMenu.Item>
-			<DropdownMenu.Item on:click={() => setMode("dark")}>Тёмная</DropdownMenu.Item>
-			<DropdownMenu.Item on:click={() => resetMode()}>Системная</DropdownMenu.Item>
+			<DropdownMenu.Item onclick={() => Exit()}>Выход</DropdownMenu.Item>
 			</DropdownMenu.Content>
 		</DropdownMenu.Root>
     </div>
