@@ -4,7 +4,6 @@
 	import { Button } from "$lib/components/ui/button/index.js";
 	import * as DropdownMenu from "$lib/components/ui/dropdown-menu";
 	import { resetMode, setMode } from "mode-watcher";
-    import { _store } from '../core/_store';
 	import * as Avatar from "$lib/components/ui/avatar/index.js";
 	import { goto } from '$app/navigation';
     import { onMount } from 'svelte';
@@ -49,16 +48,13 @@
 	})
 </script>
 
-<header class="w-full top-0 flex py-2 items-center justify-between gap-4 border-b bg-background px-4 fixed bg-white dark:bg-stone-950 z-10">
+<header class="w-full top-0 flex py-2 items-center justify-between gap-4 border-b px-4 fixed bg-white dark:bg-stone-950 z-10">
     <nav class="fgap-6 font-medium flex flex-row items-center gap-5 text-sm lg:gap-6">
 		<a href="/" class:!text-foreground={$page.url.pathname === '/' ? 'page' : undefined} class="text-muted-foreground transition-colors hover:text-foreground">
 			Главная
 		</a>
 		<a href="/settings" class:!text-foreground={$page.url.pathname === '/settings' ? 'page' : undefined} class="text-muted-foreground transition-colors hover:text-foreground">
 			Доп. настройки
-		</a>
-		<a href="/iiko" class:!text-foreground={$page.url.pathname === '/iiko' ? 'page' : undefined} class="text-muted-foreground transition-colors hover:text-foreground">
-			IIKO
 		</a>
     </nav>
 	<div class="flex items-center gap-4 md:ml-auto md:gap-2 lg:gap-4"></div>
@@ -95,7 +91,7 @@
 		</Popover.Root>
 
 		<Dialog.Root>
-			<Dialog.Trigger><div><Button variant="outline">Помощь</Button></div></Dialog.Trigger>
+			<Dialog.Trigger asChild><Button variant="outline">Помощь</Button></Dialog.Trigger>
 			<Dialog.Content class="max-w-[80%]">
 				<Dialog.Header><Dialog.Title>Инструкция по использованию</Dialog.Title></Dialog.Header>
 				<ScrollArea class="h-[80vh]">					
@@ -318,7 +314,7 @@
 		</Dialog.Root>
 
 		<DropdownMenu.Root>
-			<DropdownMenu.Trigger>
+			<DropdownMenu.Trigger asChild>
                 <div>
 				<Button variant="link" size="icon">
 					<Avatar.Root>

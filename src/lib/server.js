@@ -49,7 +49,7 @@ export const get = async (endpoint) => {
     return await res.json();
 };
 
-export const delet = async (endpoint) => {
+export const delet = async (endpoint, filename ) => {
     const res = await fetch("https://" + get_base_url() + endpoint, {
         method: 'DELETE',  
         headers: {
@@ -58,6 +58,7 @@ export const delet = async (endpoint) => {
                 Authorization: "Bearer" + " " + localStorage.getItem("token"),
             }),
         },
+        body: JSON.stringify({filename}),
         keepalive: false 
     });
     return await res.json();

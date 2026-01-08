@@ -16,7 +16,7 @@ export const _products_iiko = $state({
 
 export const load_products = async (city) => {
     try {
-        const data = await get(`products?city=${city}`);
+        const data = await get(`products_admin?city=${city}`);
         _products_iiko.list = Array.isArray(data) ? data : [];
         _products_iiko.loading = false
     } catch (e) {
