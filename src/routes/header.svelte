@@ -46,9 +46,6 @@
 			cities = _site_settings.list.find(s => s.id == 'city')?.data
 		}
 	})
-
-    $inspect(_site_settings.list)
-    $inspect(cities)
 </script>
 
 <header class="w-full top-0 flex py-2 items-center justify-between gap-4 border-b px-4 fixed bg-white dark:bg-stone-950 z-10">
