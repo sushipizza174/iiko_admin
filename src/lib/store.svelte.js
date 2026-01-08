@@ -5,7 +5,37 @@ export const _auth = $state({
     is_authenticated: false,
     auth_error: "",
     user: {},
+    is_loading: true,
 });
+
+// Функция для инициализации аутентификации
+export const init_auth = async () => {
+    _auth.is_loading = true;
+    const token = localStorage.getItem('token');
+    
+    if (!token) {
+        _auth.is_loading = false;
+        return;
+    }
+    
+    try {
+        // Проверяем токен
+        const data = await post("auth", {token});
+        if (data.result === false) {
+            localStorage.removeItem('token');
+        } else {
+            _auth.user = data;
+            _auth.is_authenticated = data.active || false;
+            const res = await get("site_settings");
+            _site_settings.list = res
+            _site_settings.loading = true
+        }
+    } catch (error) {
+        console.error("Auth init error:", error);
+    } finally {
+        _auth.is_loading = false;
+    }
+};
 
 export const _city = typeof localStorage !== 'undefined' ? localStorage.getItem('city') ?? 'chelyabinsk' : 'chelyabinsk';
 
@@ -31,22 +61,6 @@ export const _site_settings = $state({
     loading: false,
     error: "",
 });
-
-export const load_settings = async () => {
-    _site_settings.loading = true;
-    _site_settings.error = "";
-
-    try {
-        const data = await get("crm_settings");
-        _site_settings.list = Array.isArray(data) ? data : [];
-    } catch (e) {
-        console.error("Ошибка загрузки настроек:", e);
-        _site_settings.error = e.message || "Ошибка загрузки настроек";
-    } finally {
-
-        _site_settings.loading = false;
-    }
-};
 
 // Конфигурация
 export const _config = $state({

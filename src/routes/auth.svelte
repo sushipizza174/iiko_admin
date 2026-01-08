@@ -1,12 +1,12 @@
 <script lang="js">
-    import { post } from "$lib/server";
     import { Button } from "$lib/components/ui/button";
     import * as Card from "$lib/components/ui/card";
     import { Input } from "$lib/components/ui/input";
     import { Label } from "$lib/components/ui/label";
-    import { _auth } from "$lib/store.svelte.js";
+    import { _auth, _site_settings } from "$lib/store.svelte.js";
     import Logo from "$lib/components/ui/logo.svelte";
     import { onMount } from "svelte";
+    import { get, post } from "$lib/server";
 
     let login = $state("");
     let pass = $state("");
@@ -45,10 +45,13 @@
         }
     }
 
-    const init_user = (data) => {
+    const init_user = async (data) => {
         localStorage.setItem('token', data.token)
         _auth.user = data
         if (data.active) _auth.is_authenticated = true
+        const res = await get("site_settings");
+        _site_settings.list = res
+        _site_settings.loading = true
     }
 </script>
 

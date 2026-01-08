@@ -35,9 +35,9 @@
 
 	onMount(()=>{
 		let interval;
-		if (_site_settings.length === 0) {
+		if (_site_settings.list.length === 0) {
 			interval = setInterval(() => {
-				if (_site_settings.length > 0) {
+				if (_site_settings.list.length > 0) {
 					clearInterval(interval);
 					cities = _site_settings.list.find(s => s.id == 'city')?.data
 				}
@@ -46,6 +46,9 @@
 			cities = _site_settings.list.find(s => s.id == 'city')?.data
 		}
 	})
+
+    $inspect(_site_settings.list)
+    $inspect(cities)
 </script>
 
 <header class="w-full top-0 flex py-2 items-center justify-between gap-4 border-b px-4 fixed bg-white dark:bg-stone-950 z-10">
@@ -81,7 +84,7 @@
                                     localStorage.setItem('city', c.id)
 									setTimeout(() => location.reload(), 100); 
 								}}>
-								<Check class={cn( "mr-2 h-4 w-4",  city !== c.id && "text-transparent")}  />
+								<Check class={cn( "mr-2 h-4 w-4",  c !== c.id && "text-transparent")}  />
 								{c.name}
 							</Command.Item>
 						{/each}

@@ -1,23 +1,37 @@
 <script>
 	import '../app.css';
 	import Header from './header.svelte';
-    import { _auth } from "$lib/store.svelte.js";
+    import { _auth, init_auth} from "$lib/store.svelte.js";
 	import  Auth  from "./auth.svelte"
 	import { Toaster } from "$lib/components/ui/sonner";
-	let { children } = $props();
+    import { onMount } from "svelte";
+    import Loader from "$lib/components/ui/Loader.svelte";
+        
+    let { children } = $props();
+    let is_loading = $state(true); // Добавляем состояние загрузки
+    
+    onMount(async () => {
+        await init_auth();
+    });
 </script>
 
 <Toaster />
-<!-- {#if _auth.is_authenticated} -->
+{#if _auth.is_loading}
+    <!-- Показываем загрузчик во время инициализации -->
+    <div class="min-h-screen flex items-center justify-center">
+        <Loader/>
+    </div>
+{:else if _auth.is_authenticated}
     <div class="app mt-10">
         <Header/>
         <main>
             {@render children?.()}
         </main>
     </div>
-<!-- {:else}
+{:else}
     <Auth/>
-{/if} -->
+{/if}
+
 <style>
 	.app {
 		display: flex;
