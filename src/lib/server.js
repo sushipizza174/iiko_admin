@@ -1,16 +1,7 @@
-import { _config} from "$lib/store.svelte.js";
+import { _config } from "$lib/store.svelte.js";
 
-const get_base_url = () => {
-    // const hostname = window.location.hostname;
-
-    // if (hostname === 'supio.ru') {
-    //     return _config.prod_api;
-    // }
-    return _config.fudo_api;
-};
-
-export const post = async (endpoint, data) => {
-    const res = await fetch("https://" + get_base_url() + endpoint, {
+export const post = async (endpoint, data, base_url = _config.fudo_api) => {
+    const res = await fetch("https://" + base_url + endpoint, {
         method: "POST",
         headers: {
             "Content-Type": "application/json",
@@ -23,8 +14,8 @@ export const post = async (endpoint, data) => {
     return await res.json();
 };
 
-export const put = async (endpoint, data) => {
-    const res = await fetch("https://" + get_base_url() + endpoint, {
+export const put = async (endpoint, data, base_url = _config.fudo_api) => {
+    const res = await fetch("https://" + base_url + endpoint, {
         method: "PUT",
         headers: {
             "Content-Type": "application/json",
@@ -37,8 +28,8 @@ export const put = async (endpoint, data) => {
     return await res.json();
 };
 
-export const get = async (endpoint) => {
-    const res = await fetch("https://" + get_base_url() + endpoint, {
+export const get = async (endpoint, base_url = _config.fudo_api) => {
+    const res = await fetch("https://" + base_url + endpoint, {
         method: "GET",
         headers: {
             ...(localStorage.getItem("token") && {
@@ -49,8 +40,8 @@ export const get = async (endpoint) => {
     return await res.json();
 };
 
-export const delet = async (endpoint, filename ) => {
-    const res = await fetch("https://" + get_base_url() + endpoint, {
+export const delet = async (endpoint, filename, base_url = _config.fudo_api) => {
+    const res = await fetch("https://" + base_url + endpoint, {
         method: 'DELETE',  
         headers: {
             'Content-Type': 'application/json',

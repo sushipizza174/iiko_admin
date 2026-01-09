@@ -35,24 +35,6 @@
         group: null,
     })
 
-    const update_filtered = () => {
-        products = filter_products()
-    }
-
-    const filter_products = () => {
-        let result = [..._products_iiko.list]; 
-        if (filters.name) {
-            result = result.filter(product => product.name.toLowerCase().includes(filters.name?.toLowerCase()))
-        }
-
-        if (filters.group  && filters.group !== 'Все') {
-            result = result.filter(product => product.group?.toLowerCase().includes(filters.group.toLowerCase()))
-        }
-        return result
-    }
-    
-
-
     let selected_group = $derived((group_names?.find((g) => g.toLowerCase().includes(filters.group?.toLowerCase())) ?? "Группа")
         .slice(0, 24) + (group_names?.find((g) => g.toLowerCase().includes(filters.group?.toLowerCase()))?.length > 24 ? '...' : ''))
 
@@ -105,6 +87,27 @@
         logs.sets_without_compos?.length > 0
     );
 
+    let img_to_delete = []
+    let not_saved_img = []
+
+    const imgproxy_path = (file, width, height) => `https://fudomedia.ru/insecure/rs:fill:${width}:${height}/g:ce/format:webp/${btoa(`${_config.img_api}${file}`)}`;
+
+    const update_filtered = () => {
+        products = filter_products()
+    }
+
+    const filter_products = () => {
+        let result = [..._products_iiko.list]; 
+        if (filters.name) {
+            result = result.filter(product => product.name.toLowerCase().includes(filters.name?.toLowerCase()))
+        }
+
+        if (filters.group  && filters.group !== 'Все') {
+            result = result.filter(product => product.group?.toLowerCase().includes(filters.group.toLowerCase()))
+        }
+        return result
+    }
+
     onMount( async () => {
         try {
             const data = await get(`products?city=${_city}&type=stage`);
@@ -155,12 +158,6 @@
         
     }
 
-
-    let img_to_delete = []
-    let not_saved_img = []
-
-    const imgproxy_path = (file, width, height) => `https://fudomedia.ru/insecure/rs:fill:${width}:${height}/g:ce/format:webp/${btoa(`${_config.img_api}${file}`)}`;
-
     // добавляет картинку на сервер
     async function upload_file() {
         const file = event.target.files[0]; 
@@ -178,7 +175,6 @@
                 method: "POST",
                 body: formData
             });
-            const result = await response.json();
             if (result.success) {	
                 edit_product.img = edit_product.img.map(img => img === 'load' ? result.filename : img); // Заменяем 'load' на реальное имя файла
                 not_saved_img.push(result.filename);
