@@ -1,24 +1,20 @@
 <script lang="ts">
     // @ts-nocheck
     import { beforeUpdate } from "svelte";
-    import CaretSort from "svelte-radix/CaretSort.svelte";
-    import {_store} from "../../../core/_store"
-    import { utils } from "../../../core/utils"
     import { Input } from "$lib/components/ui/input/index.js";
     import { Button } from "$lib/components/ui/button/index.js";
     import * as Popover from "$lib/components/ui/popover/index.js";
     import * as Command from "$lib/components/ui/command/index.js";
-    import CrossCircled from "svelte-radix/CrossCircled.svelte";
-    import Pencil2 from "svelte-radix/Pencil2.svelte";
+    import { XCircle, PlusCircle, Pencil } from "@lucide/svelte";    
     import Loader from "$lib/components/ui/Loader.svelte";
-    import Check from "svelte-radix/Check.svelte";
     import { cn } from "$lib/utils.js";
     import { tick } from "svelte";
     import { toast } from "svelte-sonner";
     import * as Dialog from "$lib/components/ui/dialog";
-    import PlusCircled from "svelte-radix/PlusCircled.svelte";
     import Textarea from "$lib/components/ui/textarea/textarea.svelte";
     import { Label } from "$lib/components/ui/label/index.js";
+    import {_config, _site_settings} from "$lib/store.svelte.js"
+    import { helpers } from "$lib/helpers.js"
 
     export let city_name = ''
     export let city = ''
@@ -29,12 +25,12 @@
     let attention_bonus_text
 
     beforeUpdate(()=>{
-        Init_SetIems()
+        init_site_settings()
     })
 
-    const Init_SetIems = () => {
-        if ($_store.load_settings) {
-            attention_bonus = $_store.site_settings.find(s => s.id == 'attention_bonus')?.data
+    const init_site_settings = () => {
+        if (_site_settings.loading) {
+            attention_bonus = _site_settings.list.find(s => s.id == 'attention_bonus')?.data
         }
     }
 
@@ -55,7 +51,7 @@
                                 <Dialog.Trigger on:click={() => edit_setting = { ...setting }} class="!outline-none flex">
                                     <div class="flex gap-2 items-start justify-between p-2 shadow-md rounded-md w-[340px] border text-start">
                                         <p><span class="font-semibold">Текст:</span> {@html setting.text}</p>
-                                        <Pencil2 class="h-5 w-5 flex-shrink-0" />
+                                        <Pencil class="h-5 w-5 flex-shrink-0" />
                                     </div>
                                 </Dialog.Trigger>
                             </div>
@@ -72,7 +68,7 @@
                                             <Dialog.Root>
                                                 <Dialog.Trigger>
                                                     <button class="flex items-center underline underline-offset-4 gap-2 text-red-600">
-                                                        Удалить <CrossCircled class="h-5 w-5 mt-1" />
+                                                        Удалить <XCircle class="h-5 w-5 mt-1" />
                                                     </button>
                                                 </Dialog.Trigger>
                                                 <Dialog.Content>
@@ -135,7 +131,7 @@
     <!-- Добавить -->
     <Popover.Root>
         <Popover.Trigger asChild let:builder class="!outline-none">
-            <Button builders={[builder]} variant="outline" class="mt-3"><PlusCircled class="text-gray-400 h-4 w-4 mr-2" /> Добавить</Button>
+            <Button builders={[builder]} variant="outline" class="mt-3"><PlusCircle class="text-gray-400 h-4 w-4 mr-2" /> Добавить</Button>
         </Popover.Trigger>
         <Popover.Content class="w-max" align="start">
             <p class="font-bold mb-1">Добавить</p>

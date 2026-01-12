@@ -1,22 +1,17 @@
 <script lang="ts">
     // @ts-nocheck
     import { beforeUpdate } from "svelte";
-    import CaretSort from "svelte-radix/CaretSort.svelte";
-    import {_store} from "../../../core/_store"
-    import { utils } from "../../../core/utils"
+    import { _site_settings} from "$lib/store.svelte.js"
     import { Input } from "$lib/components/ui/input/index.js";
     import { Button } from "$lib/components/ui/button/index.js";
     import * as Popover from "$lib/components/ui/popover/index.js";
     import * as Command from "$lib/components/ui/command/index.js";
-    import CrossCircled from "svelte-radix/CrossCircled.svelte";
-    import Pencil2 from "svelte-radix/Pencil2.svelte";
+    import { XCircle, PlusCircle, Pencil, ChevronsUpDown, Check } from "@lucide/svelte";    
     import Loader from "$lib/components/ui/Loader.svelte";
-    import Check from "svelte-radix/Check.svelte";
     import { cn } from "$lib/utils.js";
     import { tick } from "svelte";
     import { toast } from "svelte-sonner";
     import * as Dialog from "$lib/components/ui/dialog";
-    import PlusCircled from "svelte-radix/PlusCircled.svelte";
     import Textarea from "$lib/components/ui/textarea/textarea.svelte";
     import { Label } from "$lib/components/ui/label/index.js";
     import { ScrollArea } from "$lib/components/ui/scroll-area/index.js";
@@ -41,12 +36,12 @@
     let items = [{ min_sum: '', price: '', uuid: ''}]
 
     beforeUpdate(()=>{
-        Init_SetIems()
+        init_site_settings()
     })
 
-    const Init_SetIems = () => {
-        if ($_store.load_settings) {
-            delivery = $_store.site_settings.find(s => s.id == 'delivery')?.data
+    const init_site_settings = () => {
+        if (_site_settings.loading) {
+            delivery = _site_settings.list.find(s => s.id == 'delivery')?.data
         }
     }
 
@@ -90,7 +85,7 @@
                                 <div class="flex flex-col items-start p-2 shadow-md rounded-md w-[340px] border h-full">
                                     <div class="flex justify-between gap-2 mb-2 w-full">
                                         <p class="underline">{setting.type}</p>
-                                        <Pencil2 class="h-5 w-5" />
+                                        <Pencil class="h-5 w-5" />
                                     </div>
 
                                     <div class="flex flex-col max-w-80 text-start">
@@ -156,7 +151,7 @@
                                             <Input bind:value={item.text} class="mt-2" />
                                         {/each}
                                         <Button variant="outline" on:click={() => edit_setting.info = [...edit_setting.info, { text: "" }]} class="mt-2">
-                                            <PlusCircled class="text-gray-400 h-5 w-5 mr-2" /> Добавить информацию
+                                            <PlusCircle class="text-gray-400 h-5 w-5 mr-2" /> Добавить информацию
                                         </Button>
 
 
@@ -188,7 +183,7 @@
                                                 </div>
                                             {/each}
                                             <Button variant="outline" on:click={() => edit_setting.items = [...edit_setting.items, { }]} class="mt-2">
-                                                <PlusCircled class="text-gray-400 h-5 w-5 mr-2" /> Добавить информацию
+                                                <PlusCircle class="text-gray-400 h-5 w-5 mr-2" /> Добавить информацию
                                             </Button>
                                         {/if} -->
 
@@ -246,7 +241,7 @@
     <!-- Добавить информацию о доставке -->
     <Popover.Root>
         <Popover.Trigger asChild let:builder class="!outline-none">
-            <Button builders={[builder]} variant="outline"><PlusCircled class="text-gray-400 h-4 w-4 mr-2" /> Добавить</Button>
+            <Button builders={[builder]} variant="outline"><PlusCircle class="text-gray-400 h-4 w-4 mr-2" /> Добавить</Button>
         </Popover.Trigger>
         <Popover.Content class="w-[400px]" align="start">
             <p class="font-bold mb-1">Добавить</p>
@@ -292,7 +287,7 @@
                             {/each}
                         </div>
                         <button on:click={() => info = [...info, { text: "" }]}>
-                            <PlusCircled class="text-gray-400 h-5 w-5 mr-2 mt-2" />
+                            <PlusCircle class="text-gray-400 h-5 w-5 mr-2 mt-2" />
                         </button>
                     </div>
                 </div>

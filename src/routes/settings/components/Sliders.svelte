@@ -1,28 +1,23 @@
 <script lang="ts">
 // @ts-nocheck
 import { beforeUpdate } from "svelte";
-import CaretSort from "svelte-radix/CaretSort.svelte";
-import {_store} from "../../../core/_store"
-import { utils } from "../../../core/utils"
+import {_config, _products_iiko, _site_settings} from "$lib/store.svelte.js"
+import { helpers } from "$lib/helpers.js"
 import { Input } from "$lib/components/ui/input/index.js";
 import { Button } from "$lib/components/ui/button/index.js";
 import * as Popover from "$lib/components/ui/popover/index.js";
 import * as Command from "$lib/components/ui/command/index.js";
-import CrossCircled from "svelte-radix/CrossCircled.svelte";
-import Pencil2 from "svelte-radix/Pencil2.svelte";
+import { XCircle, PlusCircle, Pencil, ChevronsUpDown, Check } from "@lucide/svelte";    
 import Loader from "$lib/components/ui/Loader.svelte";
-import Check from "svelte-radix/Check.svelte";
 import { cn } from "$lib/utils.js";
 import { tick } from "svelte";
 import { toast } from "svelte-sonner";
 import * as Dialog from "$lib/components/ui/dialog";
-import PlusCircled from "svelte-radix/PlusCircled.svelte";
 
 export let city_name = ''
 export let city = ''
 export let edit_site_settings
 
-let products = []
 let img_sliders = []
 let edit_setting
 
@@ -36,13 +31,12 @@ let add_setting = {
 }
 
 beforeUpdate(()=>{
-	products = $_store.products || [];
-	Init_SetIems()
+	init_site_settings()
 })
 
-const Init_SetIems = () => {
-	if ($_store.load_settings) {
-        img_sliders = $_store.site_settings.find(s => s.id == 'img_sliders')?.data
+const init_site_settings = () => {
+	 if (_site_settings.loading) {
+        img_sliders =  _site_settings.list.find(s => s.id == 'img_sliders')?.data
         // console.log(img_sliders)
 	}
 }
@@ -74,7 +68,6 @@ async function uploadFileSlider(event) {
         add_setting.slider_img = 'load';
 
         try {
-            // const response = await fetch(`${$_store.api_path}/upload_img?token=${localStorage.getItem('token')}`, {
 			const response = await fetch(`https://fudoadmin.ru/api/image?token=${localStorage.getItem('token')}&key=UHCowkgAEk63vXn62LHmYov`, {
                 method: "POST",
                 body: formData,
@@ -104,7 +97,6 @@ async function uploadFileEdit() {
     edit_setting.img = 'load';
 
     try {
-        // const response = await fetch(`${$_store.api_path}/upload_img?token=${localStorage.getItem('token')}`, {
 			const response = await fetch(`https://fudoadmin.ru/api/image?token=${localStorage.getItem('token')}&key=UHCowkgAEk63vXn62LHmYov`, {
             method: "POST",
             body: formData,
@@ -140,7 +132,7 @@ async function uploadFileEdit() {
 							{#key setting.img} <!-- Ускоряет ререндеринг -->
 							<div class="flex items-start gap-1">
 								<div class="flex flex-col justify-center max-w-20">
-									<img src={$_store.imgproxy_path(setting.img, '268', '320')} alt="Слайдер {setting.name}" class="w-20 rounded-md" />
+									<img src={helpers.imgproxy_path(setting.img, '268', '320')} alt="Слайдер {setting.name}" class="w-20 rounded-md" />
 									<p class="text-xs text-wrap w-20 break-all">{setting.img}</p>
 								</div>
 
@@ -149,10 +141,10 @@ async function uploadFileEdit() {
 								<!-- Редактировать -->
 								<Dialog.Root onOpenChange={(open) => {
 									if (!open) {
-										not_saved_img?.forEach(img => { utils.deleteImg(img) });
+										not_saved_img?.forEach(img => { helpers.delete_img(img) });
 										not_saved_img = [];
 									}}}>
-									<Dialog.Trigger on:click={() => {edit_setting = { ...setting }; img_to_delete = edit_setting.img}}><Pencil2 class="h-5 w-5 !outline-none" /></Dialog.Trigger>
+									<Dialog.Trigger on:click={() => {edit_setting = { ...setting }; img_to_delete = edit_setting.img}}><Pencil class="h-5 w-5 !outline-none" /></Dialog.Trigger>
 									<Dialog.Content>
 										  <Dialog.Header><Dialog.Title>Редактировать</Dialog.Title></Dialog.Header>
 										  <div class="grid">
@@ -174,10 +166,10 @@ async function uploadFileEdit() {
 													disabled={!edit_setting.img}
 													on:click={() =>  {
 														let index = img_sliders.findIndex(item => item.id === edit_setting.id)
-														not_saved_img.filter(img => img !== edit_setting.img)?.forEach(img => { utils.deleteImg(img) });
+														not_saved_img.filter(img => img !== edit_setting.img)?.forEach(img => { helpers.delete_img(img) });
                     									not_saved_img = [];
 														if (img_to_delete !== edit_setting.img) {
-															utils.deleteImg(img_to_delete)
+															helpers.delete_img(img_to_delete)
 														}
 														img_to_delete = null;
 														edit_site_settings('img_sliders', edit_setting, null, index)
@@ -192,7 +184,7 @@ async function uploadFileEdit() {
 
 								<!-- Удалить слайд -->
 								<Dialog.Root>
-									<Dialog.Trigger on:click={() => edit_setting = { ...setting }} class="!outline-none"><CrossCircled class="h-5 w-5 text-red-600" /></Dialog.Trigger>
+									<Dialog.Trigger on:click={() => edit_setting = { ...setting }} class="!outline-none"><XCircle class="h-5 w-5 text-red-600" /></Dialog.Trigger>
 									<Dialog.Content>
 										  <Dialog.Header>
 											<Dialog.Title>Вы уверены, что хотите удалить слайд?</Dialog.Title>
@@ -203,7 +195,7 @@ async function uploadFileEdit() {
 											<Button 
 												on:click={() => {
 													let index = img_sliders.findIndex(item => item.id === edit_setting.id)
-													utils.deleteImg(edit_setting.img); 
+													helpers.delete_img(edit_setting.img); 
 													edit_site_settings('img_sliders', null, index)
 											}}>Удалить</Button>
 										</Dialog.Close>
@@ -221,13 +213,13 @@ async function uploadFileEdit() {
 		<!-- Добавить слайдер -->
 		<Popover.Root onOpenChange={(open) => {
 			if (!open) {
-				not_saved_img?.forEach(img => { utils.deleteImg(img) });
+				not_saved_img?.forEach(img => { helpers.delete_img(img) });
 				not_saved_img = [];
 				add_setting.slider_img = null;
 				add_setting.slider_img_b64 = null;
 			}}}>
 			<Popover.Trigger asChild let:builder class="!outline-none">
-				<Button builders={[builder]} variant="outline" class="mt-3"><PlusCircled class="text-gray-400 h-4 w-4 mr-2" /> Добавить</Button>
+				<Button builders={[builder]} variant="outline" class="mt-3"><PlusCircle class="text-gray-400 h-4 w-4 mr-2" /> Добавить</Button>
 			</Popover.Trigger>
 			<Popover.Content class="w-max" align="start">
 				<p class="font-bold mb-1">Добавить</p>
@@ -242,7 +234,7 @@ async function uploadFileEdit() {
 						<input type="file" class="absolute inset-0 w-full h-full opacity-0 pointer-events-none" />
 						<Button variant="outline" class="pointer-events-none">
 							{#if !add_setting.slider_img}
-								<PlusCircled class="text-gray-400 h-4 w-4 mr-2" /> 
+								<PlusCircle class="text-gray-400 h-4 w-4 mr-2" /> 
 							{/if}
 							{add_setting.slider_img ? 'Изменить ' : 'Добавить '} файл
 						</Button>
@@ -253,7 +245,7 @@ async function uploadFileEdit() {
 						on:click={() => {
 							const existingIds = img_sliders?.map(item => item.id) || [];
 							const maxId = existingIds.length > 0 ? Math.max(...existingIds) : 0;
-							not_saved_img.filter(img => img !== add_setting.slider_img)?.forEach(img => { utils.deleteImg(img) });
+							not_saved_img.filter(img => img !== add_setting.slider_img)?.forEach(img => { helpers.delete_img(img) });
                     		not_saved_img = [];
 							edit_site_settings('img_sliders', {
 								id: maxId + 1, 

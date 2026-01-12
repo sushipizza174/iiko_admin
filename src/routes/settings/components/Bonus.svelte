@@ -1,25 +1,21 @@
 <script lang="ts">
     // @ts-nocheck
     import { beforeUpdate } from "svelte";
-    import CaretSort from "svelte-radix/CaretSort.svelte";
-    import {_store} from "../../../core/_store"
-    import { utils } from "../../../core/utils"
+    import {_config, _site_settings} from "$lib/store.svelte.js"
     import { Input } from "$lib/components/ui/input/index.js";
     import { Button } from "$lib/components/ui/button/index.js";
     import * as Popover from "$lib/components/ui/popover/index.js";
     import * as Command from "$lib/components/ui/command/index.js";
-    import CrossCircled from "svelte-radix/CrossCircled.svelte";
-    import Pencil2 from "svelte-radix/Pencil2.svelte";
+    import { XCircle, PlusCircle, Pencil, ChevronsUpDown, Check } from "@lucide/svelte";    
     import Loader from "$lib/components/ui/Loader.svelte";
-    import Check from "svelte-radix/Check.svelte";
     import { cn } from "$lib/utils.js";
     import { tick } from "svelte";
     import { toast } from "svelte-sonner";
     import * as Dialog from "$lib/components/ui/dialog";
-    import PlusCircled from "svelte-radix/PlusCircled.svelte";
     import Textarea from "$lib/components/ui/textarea/textarea.svelte";
     import { Label } from "$lib/components/ui/label/index.js";
     import { ScrollArea } from "$lib/components/ui/scroll-area/index.js";
+    import { helpers } from "$lib/helpers.js"
 
     export let city_name = ''
     export let city = ''
@@ -40,12 +36,12 @@
     let not_saved_img = []
 
     beforeUpdate(()=>{
-        Init_SetIems()
+        init_site_settings()
     })
 
-    const Init_SetIems = () => {
-        if ($_store.load_settings) {
-            bonus = $_store.site_settings.find(s => s.id == 'bonus')?.data
+    const init_site_settings = () => {
+        if (_site_settings.loading) {
+            bonus = _site_settings.list.find(s => s.id == 'bonus')?.data
         }
     }
 
@@ -60,7 +56,6 @@
         edit_setting.img = 'load';
 
         try {
-            // const response = await fetch(`${$_store.api_path}/upload_img?token=${localStorage.getItem('token')}`, {
                 const response = await fetch(`https://fudoadmin.ru/api/image?token=${localStorage.getItem('token')}&key=UHCowkgAEk63vXn62LHmYov`, {
                 method: "POST",
                 body: formData,
@@ -89,7 +84,6 @@
         add_setting.bonus_img = 'load';
 
         try {
-            // const response = await fetch(`${$_store.api_path}/upload_img?token=${localStorage.getItem('token')}`, {
                 const response = await fetch(`https://fudoadmin.ru/api/image?token=${localStorage.getItem('token')}&key=UHCowkgAEk63vXn62LHmYov`, {
                 method: "POST",
                 body: formData,
@@ -134,7 +128,7 @@
                             <!-- Редактировать -->
                             <Dialog.Root onOpenChange={(open) => {
                                 if (!open) {
-                                    not_saved_img?.forEach(img => { utils.deleteImg(img) });
+                                    not_saved_img?.forEach(img => { helpers.delete_img(img) });
                                     not_saved_img = [];
                                 }}}>
                                 <div class="flex">
@@ -142,10 +136,10 @@
                                         <div class="p-2 shadow-md rounded-md w-[330px] border">
                                             <div class="flex items-center justify-between mb-3 w-full">
                                                 <p class="underline">{setting.type}</p>
-                                                <Pencil2 class="h-5 w-5" />
+                                                <Pencil class="h-5 w-5" />
                                             </div>
 
-                                            <img src={$_store.imgproxy_path(setting.img, '543', '146')} alt="Картинка {setting.name}" class="rounded-md" />
+                                            <img src={helpers.imgproxy_path(setting.img, '543', '146')} alt="Картинка {setting.name}" class="rounded-md" />
                                             <p class="text-xs text-wrap break-all text-center">{setting.img}</p>
             
                                             <p class="mt-2 text-start"><span class="font-semibold">Заголовок:</span> {@html setting.title}</p>
@@ -226,8 +220,8 @@
                                                     <Dialog.Close class="w-full">
                                                         <Button class="w-full" on:click={() => {
                                                             if (globalIndex !== -1) {
-                                                                utils.deleteImg(edit_setting.img); // удаляем текущую картинку
-                                                                utils.deleteImg(img_to_delete);  // удаляем картинки, на которые была заменена текущая
+                                                                helpers.delete_img(edit_setting.img); // удаляем текущую картинку
+                                                                helpers.delete_img(img_to_delete);  // удаляем картинки, на которые была заменена текущая
                                                                 img_to_delete = null
                                                                 edit_site_settings('bonus', null, globalIndex);
                                                                 toast.success("Успешно!", {
@@ -252,10 +246,10 @@
                                                     disabled={!edit_setting.type || !edit_setting.text || !edit_setting.img}
                                                     on:click={() => {
                                                         if (globalIndex !== -1) {
-                                                            not_saved_img.filter(img => img !== edit_setting.img)?.forEach(img => { utils.deleteImg(img) });
+                                                            not_saved_img.filter(img => img !== edit_setting.img)?.forEach(img => { helpers.delete_img(img) });
                                                             not_saved_img = [];
                                                             if (img_to_delete !== edit_setting.img) {
-                                                                utils.deleteImg(img_to_delete)
+                                                                helpers.delete_img(img_to_delete)
                                                             }
                                                             img_to_delete = null;
                                                             edit_site_settings('bonus', {...edit_setting, city}, null, globalIndex);
@@ -288,12 +282,12 @@
     <!-- Добавить -->
     <Popover.Root onOpenChange={(open) => {
         if (!open) {
-            not_saved_img?.forEach(img => { utils.deleteImg(img) });
+            not_saved_img?.forEach(img => { helpers.delete_img(img) });
             not_saved_img = [];
             add_setting.bonus_img = null;
         }}}>
         <Popover.Trigger asChild let:builder class="!outline-none">
-            <Button builders={[builder]} variant="outline" class="mt-3"><PlusCircled class="text-gray-400 h-4 w-4 mr-2" /> Добавить</Button>
+            <Button builders={[builder]} variant="outline" class="mt-3"><PlusCircle class="text-gray-400 h-4 w-4 mr-2" /> Добавить</Button>
         </Popover.Trigger>
         <Popover.Content class="w-max" align="start">
             <p class="font-bold mb-1">Добавить</p>
@@ -345,7 +339,7 @@
                 <label class="cursor-pointer" on:change={(e) => {uploadFileBonus()}}>
                     <input type="file" class="absolute inset-0 w-full h-full opacity-0 pointer-events-none" />
                     <Button variant="outline" class="pointer-events-none">
-                        <PlusCircled class="text-gray-400 h-4 w-4 mr-2" /> Добавить файл
+                        <PlusCircle class="text-gray-400 h-4 w-4 mr-2" /> Добавить файл
                     </Button>
                 </label>
             </div>
@@ -354,7 +348,7 @@
                 on:click={() => {
                     const existingIds = bonus?.map(item => item.id) || [];
                     const maxId = existingIds.length > 0 ? Math.max(...existingIds) : 0;
-                    not_saved_img.filter(img => img !== add_setting.bonus_img)?.forEach(img => { utils.deleteImg(img) });
+                    not_saved_img.filter(img => img !== add_setting.bonus_img)?.forEach(img => { helpers.delete_img(img) });
                     not_saved_img = [];
                     edit_site_settings('bonus', {	
                         id: maxId + 1,

@@ -84,7 +84,8 @@
         logs.sets_without_count?.length > 0 || 
         logs.rolls_without_category?.length > 0 || 
         logs.delivery_without_zone?.length > 0 || 
-        logs.sets_without_compos?.length > 0
+        logs.sets_without_compos?.length > 0 ||
+        logs.products_with_incorrect_marks?.length > 0
     );
 
     let img_to_delete = []
@@ -163,17 +164,16 @@
         const file = event.target.files[0]; 
         if (!file) { return }
 
-        const formData = new FormData();
-        formData.append("file", file);
+        const form_data = new FormData();
+        form_data.append("file", file);
 
         is_loading = true;
         edit_product.img = edit_product.img ? [...edit_product.img, 'load'] : ['load'];	 // Добавляем временное значение "load"
 
         try {
-            // const response = await fetch(`${$_store.api_path}/upload_img?token=${localStorage.getItem('token')}`, {
             const response = await fetch(`https://fudoadmin.ru/api/image?token=${localStorage.getItem('token')}&key=UHCowkgAEk63vXn62LHmYov`, {
                 method: "POST",
-                body: formData
+                body: form_data
             });
             if (result.success) {	
                 edit_product.img = edit_product.img.map(img => img === 'load' ? result.filename : img); // Заменяем 'load' на реальное имя файла

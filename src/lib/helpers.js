@@ -1,7 +1,3 @@
-import * as XLSX from "xlsx";
-import { CalendarDate } from "@internationalized/date";
-
-
 // Утилиты для работы с данными
 export const helpers = {
     imgproxy_path: (file, width, height) => {

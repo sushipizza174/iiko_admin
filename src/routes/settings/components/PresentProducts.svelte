@@ -1,27 +1,23 @@
 <script lang="ts">
     // @ts-nocheck
     import { beforeUpdate } from "svelte";
-    import CaretSort from "svelte-radix/CaretSort.svelte";
-    import {_store} from "../../../core/_store"
-    import { utils } from "../../../core/utils"
     import { Input } from "$lib/components/ui/input/index.js";
     import { Button } from "$lib/components/ui/button/index.js";
     import * as Popover from "$lib/components/ui/popover/index.js";
     import * as Command from "$lib/components/ui/command/index.js";
-    import CrossCircled from "svelte-radix/CrossCircled.svelte";
-    import Pencil2 from "svelte-radix/Pencil2.svelte";
+    import { XCircle, PlusCircle, Pencil, ChevronsUpDown, Check } from "@lucide/svelte";    
     import Loader from "$lib/components/ui/Loader.svelte";
-    import Check from "svelte-radix/Check.svelte";
     import { cn } from "$lib/utils.js";
     import { tick } from "svelte";
     import { toast } from "svelte-sonner";
     import * as Dialog from "$lib/components/ui/dialog";
-    import PlusCircled from "svelte-radix/PlusCircled.svelte";
-    import MinusCircled from "svelte-radix/MinusCircled.svelte";
+    import { MinusCircle } from "@lucide/svelte";
     import { ScrollArea } from "$lib/components/ui/scroll-area/index.js";
     import { Label } from "$lib/components/ui/label/index.js";
 	import { Separator } from "$lib/components/ui/separator";
+    import {_config, _products_iiko, _site_settings} from "$lib/store.svelte.js"
     import * as RadioGroup from "$lib/components/ui/radio-group";
+
 
     export let city_name = ''
     export let city = ''
@@ -46,13 +42,13 @@
     }
 
     beforeUpdate(()=>{
-        products = $_store.products || [];
-        Init_SetIems()
+        products = _products_iiko.list || [];
+        init_site_settings()
     })
 
-    const Init_SetIems = () => {
-        if ($_store.load_settings) {
-            present_products = $_store.site_settings.find(s => s.id == 'present_products')?.data
+    const init_site_settings = () => {
+         if (_site_settings.loading) {
+            present_products = _site_settings.list.find(s => s.id == 'present_products')?.data
         }
     }
 
@@ -91,7 +87,7 @@
 
                                 <!-- Редактировать название -->
                                 <Dialog.Root>
-                                    <Dialog.Trigger class="!outline-none" on:click={() => {edit_setting = structuredClone(bonus)}}><Pencil2 class="h-5 w-5" /></Dialog.Trigger>
+                                    <Dialog.Trigger class="!outline-none" on:click={() => {edit_setting = structuredClone(bonus)}}><Pencil class="h-5 w-5" /></Dialog.Trigger>
                                     <Dialog.Content class="sm:max-w-[425px]">
                                         <Dialog.Header>
                                             <Dialog.Title>Редактировать</Dialog.Title>
@@ -119,7 +115,7 @@
                                                             new_day = ''
                                                         }
                                                     }}>
-                                                        <PlusCircled />
+                                                        <PlusCircle />
                                                     </button>
                                                 </div>
 
@@ -131,7 +127,7 @@
                                                                 class="text-red-600" 
                                                                 on:click={() => bonus.days_close = bonus.days_close.filter((_, i) => i !== index)}
                                                             >
-                                                                <MinusCircled />
+                                                                <MinusCircle />
                                                             </button>
                                                         </div>
                                                     {/each}
@@ -176,7 +172,7 @@
                                             <Command.Input placeholder="Поиск" class="h-9" />
                                             <Command.Empty>Не найдено</Command.Empty>
                                             <Command.Group>
-                                                {#each $_store.products as p}
+                                                {#each products as p}
                                                     <Command.Item
                                                         value={p.data.name}
                                                         onSelect={() => {
@@ -228,7 +224,7 @@
                                                                     add_setting.new_modif = ''
                                                                 }
                                                             }}>
-                                                                <PlusCircled />
+                                                                <PlusCircle />
                                                             </button>
                                                         </div>
 
@@ -240,7 +236,7 @@
                                                                         class="text-red-600" 
                                                                         on:click={() => add_setting.modifiers = add_setting.modifiers.filter((_, i) => i !== index)}
                                                                     >
-                                                                        <MinusCircled />
+                                                                        <MinusCircle />
                                                                     </button>
                                                                 </div>
                                                             {/each}
@@ -387,7 +383,7 @@
 		<!-- Добавить акцию -->
 		<Popover.Root>
 			<Popover.Trigger asChild let:builder class="!outline-none">
-				<Button builders={[builder]} variant="outline"><PlusCircled class="text-gray-400 h-4 w-4 mr-2"/> Добавить акцию</Button>
+				<Button builders={[builder]} variant="outline"><PlusCircle class="text-gray-400 h-4 w-4 mr-2"/> Добавить акцию</Button>
 			</Popover.Trigger>
 			<Popover.Content class="w-max" align="start">
                 <div class="flex flex-col gap-2">
@@ -415,7 +411,7 @@
                                     new_day = ''
                                 }
                             }}>
-                                <PlusCircled />
+                                <PlusCircle />
                             </button>
                         </div>
 
@@ -427,7 +423,7 @@
                                         class="text-red-600" 
                                         on:click={() => add_setting.days_close = add_setting.days_close.filter((_, i) => i !== index)}
                                     >
-                                        <MinusCircled />
+                                        <MinusCircle />
                                     </button>
                                 </div>
                             {/each}

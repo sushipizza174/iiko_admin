@@ -1,22 +1,17 @@
 <script lang="ts">
     // @ts-nocheck
     import { beforeUpdate } from "svelte";
-    import CaretSort from "svelte-radix/CaretSort.svelte";
-    import {_store} from "../../../core/_store"
-    import { utils } from "../../../core/utils"
+    import {_config, _site_settings} from "$lib/store.svelte.js"
     import { Input } from "$lib/components/ui/input/index.js";
     import { Button } from "$lib/components/ui/button/index.js";
     import * as Popover from "$lib/components/ui/popover/index.js";
     import * as Command from "$lib/components/ui/command/index.js";
-    import CrossCircled from "svelte-radix/CrossCircled.svelte";
-    import Pencil2 from "svelte-radix/Pencil2.svelte";
+    import { XCircle, PlusCircle, ChevronsUpDown, Check } from "@lucide/svelte";    
     import Loader from "$lib/components/ui/Loader.svelte";
-    import Check from "svelte-radix/Check.svelte";
     import { cn } from "$lib/utils.js";
     import { tick } from "svelte";
     import { toast } from "svelte-sonner";
     import * as Dialog from "$lib/components/ui/dialog";
-    import PlusCircled from "svelte-radix/PlusCircled.svelte";
     import { ScrollArea } from "$lib/components/ui/scroll-area/index.js";
 
     export let city_name = ''
@@ -29,13 +24,13 @@
     let edit_setting
 
     beforeUpdate(()=>{
-        products = $_store.products_iiko || [];
-        Init_SetIems()
+        products = _products_iiko.list || [];
+        init_site_settings()
     })
 
-    const Init_SetIems = () => {
-        if ($_store.load_settings) {
-            suggested_products = $_store.site_settings.find(s => s.id == 'suggested_products_iiko')?.data
+    const init_site_settings = () => {
+        if (_site_settings.loading) {
+            suggested_products = _site_settings.list.find(s => s.id == 'suggested_products_iiko')?.data
         }
     }
 
