@@ -1,6 +1,5 @@
 <script lang="ts">
     // @ts-nocheck
-    import { beforeUpdate } from "svelte";
     import {_config, _site_settings} from "$lib/store.svelte.js"
     import { Input } from "$lib/components/ui/input/index.js";
     import { Button } from "$lib/components/ui/button/index.js";
@@ -17,48 +16,46 @@
     import { ScrollArea } from "$lib/components/ui/scroll-area/index.js";
     import { helpers } from "$lib/helpers.js"
 
-    export let city_name = ''
-    export let city = ''
-    export let edit_site_settings
+    let {
+		city_name = '',
+		city = '',
+		edit_site_settings
+	} = $props();
 
-    let edit_setting
-    let bonus = []
+    let edit_setting = $state({})
+    let bonus = $derived(
+        Array.isArray(_site_settings?.list)
+            ? _site_settings.list.find(s => s.id == 'bonus_iiko')?.data ?? []
+            : []
+    );
 
-    let open = {}
-    let add_setting = {
+    let open = $state(false)
+    let open_bonus_type_edit = $state(false)
+    let open_bonus_type = $state(false)
+    let add_setting = $state({
         bonus_type: null,
         bonus_title: null,
         bonus_text: null,
         bonus_img: null,
-    }
-
-    let img_to_delete = null
-    let not_saved_img = []
-
-    beforeUpdate(()=>{
-        init_site_settings()
     })
 
-    const init_site_settings = () => {
-        if (_site_settings.loading) {
-            bonus = _site_settings.list.find(s => s.id == 'bonus')?.data
-        }
-    }
+    let img_to_delete = $state(null)
+    let not_saved_img = $state([]);
 
     // Функция для добавления картинки для редактирования
-    async function uploadFileEdit() {
+    const  upload_file_edit = async () => {
         const file = event.target.files[0]; 
         if (!file) return;
 
-        const formData = new FormData();
-        formData.append("file", file);
+        const form_data = new FormData();
+        form_data.append("file", file);
 
         edit_setting.img = 'load';
 
         try {
-                const response = await fetch(`https://fudoadmin.ru/api/image?token=${localStorage.getItem('token')}&key=UHCowkgAEk63vXn62LHmYov`, {
+            const response = await fetch(`https://fudoadmin.ru/api/image?token=${localStorage.getItem('token')}&key=UHCowkgAEk63vXn62LHmYov`, {
                 method: "POST",
-                body: formData,
+                body: form_data,
             });
 
             const result = await response.json();
@@ -74,19 +71,19 @@
     }
 
     // Функция для добавления картинки для акций и новостей
-    async function uploadFileBonus() {
+    async function upload_file_bonus() {
         const file = event.target.files[0]; 
         if (!file) return;
 
-        const formData = new FormData();
-        formData.append("file", file);
+        const form_data = new FormData();
+        form_data.append("file", file);
 
         add_setting.bonus_img = 'load';
 
         try {
                 const response = await fetch(`https://fudoadmin.ru/api/image?token=${localStorage.getItem('token')}&key=UHCowkgAEk63vXn62LHmYov`, {
                 method: "POST",
-                body: formData,
+                body: form_data,
             });
 
             const result = await response.json();
@@ -101,17 +98,7 @@
         } 
     }
 
-    // для закрытия popover
-    const closeAndFocusTrigger = (triggerId) => {
-        for (const key in open) {
-            open[key] = false;
-        }
-        tick().then(() => { document.getElementById(triggerId)?.focus() });
-    }
-
     const bonus_types = [{name: 'Акции'}, {name: 'Новости'}]
-    $: selectedTypeBonusEdit = bonus_types.find(t => t.name == edit_setting?.type)?.name ?? "Тип"
-    $: selectedTypeBonus = bonus_types.find(t => t.name == add_setting.bonus_type)?.name ?? "Тип"
 
 </script>
 
@@ -123,7 +110,7 @@
             {#if bonus_city.length > 0}
                 <div class="flex flex-wrap gap-5 mt-5">
                     {#each bonus_city as setting}
-                    {@const globalIndex = bonus.findIndex(item => item.id === setting.id)}
+                    {@const global_index = bonus.findIndex(item => item.id === setting.id)}
                         {#key setting.img} <!-- Ускоряет ререндеринг -->
                             <!-- Редактировать -->
                             <Dialog.Root onOpenChange={(open) => {
@@ -132,7 +119,7 @@
                                     not_saved_img = [];
                                 }}}>
                                 <div class="flex">
-                                    <Dialog.Trigger on:click={() => {edit_setting = { ...setting }; img_to_delete = edit_setting.img}} class="!outline-none flex">
+                                    <Dialog.Trigger onclick={() => {edit_setting = { ...setting }; img_to_delete = edit_setting.img}} class="!outline-none flex">
                                         <div class="p-2 shadow-md rounded-md w-[330px] border">
                                             <div class="flex items-center justify-between mb-3 w-full">
                                                 <p class="underline">{setting.type}</p>
@@ -152,11 +139,11 @@
                                     <div class="grid">
                                         <div class="flex flex-col gap-2 mt-2">
                                             <Label for="edit_type_bonus">Тип</Label>
-                                            <Popover.Root bind:open={open.bonus_type_edit} let:ids>
-                                                    <Popover.Trigger asChild let:builder class="w-full !outline-none">
-                                                        <Button builders={[builder]} variant="outline" role="combobox" class="w-full font-normal justify-between" id='edit_type_bonus'>
-                                                            {selectedTypeBonusEdit}
-                                                            <CaretSort class="ml-2 h-4 w-4 shrink-0 opacity-50" />
+                                            <Popover.Root bind:open={open_bonus_type_edit}>
+                                                    <Popover.Trigger asChild class="w-full !outline-none">
+                                                        <Button variant="outline" role="combobox" class="w-full font-normal justify-between" id='edit_type_bonus'>
+                                                            {bonus_types.find(t => t.name == edit_setting?.type)?.name ?? "Тип"}
+                                                            <ChevronsUpDown class="ml-2 h-4 w-4 shrink-0 opacity-50" />
                                                         </Button>
                                                     </Popover.Trigger>
                                                     <Popover.Content class="p-0">
@@ -170,7 +157,7 @@
                                                                             value={type.name}
                                                                             onSelect={(currentValue) => {
                                                                                 edit_setting.type = type.name;
-                                                                                closeAndFocusTrigger(ids.trigger);
+                                                                                open_bonus_type_edit = false
                                                                             }}
                                                                         >
                                                                             <Check class={cn( "mr-2 h-4 w-4",  edit_setting.type !== type.name && "text-transparent")}  />
@@ -199,7 +186,7 @@
                                                 <div class="scale-[0.5]"><Loader /></div>
                                             {/if}
                         
-                                            <label class="cursor-pointer flex items-center" on:change={() => uploadFileEdit()}>
+                                            <label class="cursor-pointer flex items-center" onchange={() => upload_file_edit()}>
                                                 <input type="file" class="absolute inset-0 w-full h-full opacity-0 pointer-events-none" />
                                                 <Button variant="outline" class="pointer-events-none">Изменить файл</Button>
                                             </label>
@@ -209,7 +196,7 @@
                                             <Dialog.Root>
                                                 <Dialog.Trigger>
                                                     <button class="flex items-center underline underline-offset-4 gap-2 text-red-600">
-                                                        Удалить <CrossCircled class="h-5 w-5 mt-1" />
+                                                        Удалить <XCircle class="h-5 w-5 mt-1" />
                                                     </button>
                                                 </Dialog.Trigger>
                                                 <Dialog.Content>
@@ -218,12 +205,12 @@
                                                         <Dialog.Description>Вы уверены? Это действие невозможно отменить.</Dialog.Description>
                                                     </Dialog.Header>
                                                     <Dialog.Close class="w-full">
-                                                        <Button class="w-full" on:click={() => {
-                                                            if (globalIndex !== -1) {
+                                                        <Button class="w-full" onclick={() => {
+                                                            if (global_index !== -1) {
                                                                 helpers.delete_img(edit_setting.img); // удаляем текущую картинку
                                                                 helpers.delete_img(img_to_delete);  // удаляем картинки, на которые была заменена текущая
                                                                 img_to_delete = null
-                                                                edit_site_settings('bonus', null, globalIndex);
+                                                                edit_site_settings('bonus_iiko', null, global_index);
                                                                 toast.success("Успешно!", {
                                                                     description: `Изменения сохранены.`,
                                                                     action: { label: "Закрыть",	onClick: () => console.info("") },
@@ -244,15 +231,15 @@
                                             <Dialog.Close>
                                                 <Button 
                                                     disabled={!edit_setting.type || !edit_setting.text || !edit_setting.img}
-                                                    on:click={() => {
-                                                        if (globalIndex !== -1) {
+                                                    onclick={() => {
+                                                        if (global_index !== -1) {
                                                             not_saved_img.filter(img => img !== edit_setting.img)?.forEach(img => { helpers.delete_img(img) });
                                                             not_saved_img = [];
                                                             if (img_to_delete !== edit_setting.img) {
                                                                 helpers.delete_img(img_to_delete)
                                                             }
                                                             img_to_delete = null;
-                                                            edit_site_settings('bonus', {...edit_setting, city}, null, globalIndex);
+                                                            edit_site_settings('bonus_iiko', {...edit_setting, city}, null, global_index);
                                                             toast.success("Успешно!", {
                                                                 description: `Изменения сохранены.`,
                                                                 action: { label: "Закрыть",	onClick: () => console.info("") },
@@ -286,17 +273,17 @@
             not_saved_img = [];
             add_setting.bonus_img = null;
         }}}>
-        <Popover.Trigger asChild let:builder class="!outline-none">
-            <Button builders={[builder]} variant="outline" class="mt-3"><PlusCircle class="text-gray-400 h-4 w-4 mr-2" /> Добавить</Button>
+        <Popover.Trigger asChild class="!outline-none">
+            <Button variant="outline" class="mt-3"><PlusCircle class="text-gray-400 h-4 w-4 mr-2" /> Добавить</Button>
         </Popover.Trigger>
         <Popover.Content class="w-max" align="start">
             <p class="font-bold mb-1">Добавить</p>
             <div class="flex gap-2">
-                <Popover.Root bind:open={open.bonus_type} let:ids>
-                    <Popover.Trigger asChild let:builder class="w-full !outline-none">
-                        <Button builders={[builder]} variant="outline" role="combobox" class="w-full font-normal justify-between">
-                            {selectedTypeBonus}
-                            <CaretSort class="ml-2 h-4 w-4 shrink-0 opacity-50" />
+                <Popover.Root bind:open={open_bonus_type}>
+                    <Popover.Trigger asChild class="w-full !outline-none">
+                        <Button variant="outline" role="combobox" class="w-full font-normal justify-between">
+                            {bonus_types.find(t => t.name == add_setting.bonus_type)?.name ?? "Тип"}
+                            <ChevronsUpDown class="ml-2 h-4 w-4 shrink-0 opacity-50" />
                         </Button>
                     </Popover.Trigger>
                     <Popover.Content class="p-0">
@@ -310,7 +297,7 @@
                                             value={type.name}
                                             onSelect={(currentValue) => {
                                                 add_setting.bonus_type = type.name;
-                                                closeAndFocusTrigger(ids.trigger);
+                                                open_bonus_type = false
                                             }}
                                         >
                                             <Check class={cn( "mr-2 h-4 w-4",  add_setting.bonus_type !== type.name && "text-transparent")}  />
@@ -336,7 +323,7 @@
                     <div class="scale-[0.5]"><Loader /></div>
                 {/if}
 
-                <label class="cursor-pointer" on:change={(e) => {uploadFileBonus()}}>
+                <label class="cursor-pointer" onchange={(e) => {upload_file_bonus()}}>
                     <input type="file" class="absolute inset-0 w-full h-full opacity-0 pointer-events-none" />
                     <Button variant="outline" class="pointer-events-none">
                         <PlusCircle class="text-gray-400 h-4 w-4 mr-2" /> Добавить файл
@@ -345,12 +332,12 @@
             </div>
                     
             <Button disabled={!add_setting.bonus_type || !add_setting.bonus_title || !add_setting.bonus_text || !add_setting.bonus_img}
-                on:click={() => {
+                onclick={() => {
                     const existingIds = bonus?.map(item => item.id) || [];
                     const maxId = existingIds.length > 0 ? Math.max(...existingIds) : 0;
                     not_saved_img.filter(img => img !== add_setting.bonus_img)?.forEach(img => { helpers.delete_img(img) });
                     not_saved_img = [];
-                    edit_site_settings('bonus', {	
+                    edit_site_settings('bonus_iiko', {	
                         id: maxId + 1,
                         city, 
                         type: add_setting.bonus_type, 

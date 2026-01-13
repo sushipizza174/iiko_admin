@@ -44,17 +44,6 @@ export const _products_iiko = $state({
     loading: true,
 });
 
-export const load_products = async (city) => {
-    try {
-        const data = await get(`products_admin?city=${city}`);
-        _products_iiko.list = Array.isArray(data) ? data : [];
-        _products_iiko.loading = false
-    } catch (e) {
-        console.error("Ошибка загрузки офисов:", e);
-        _products_iiko.list = [];
-    }
-};
-
 // Настройки
 export const _site_settings = $state({
     list: [],

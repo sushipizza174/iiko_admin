@@ -1,7 +1,6 @@
 <script lang="ts">
     // @ts-nocheck
-    import { beforeUpdate } from "svelte";
-    import {_config, _site_settings} from "$lib/store.svelte.js"
+    import {_config, _products_iiko, _site_settings} from "$lib/store.svelte.js"
     import { Input } from "$lib/components/ui/input/index.js";
     import { Button } from "$lib/components/ui/button/index.js";
     import * as Popover from "$lib/components/ui/popover/index.js";
@@ -14,53 +13,40 @@
     import * as Dialog from "$lib/components/ui/dialog";
     import { ScrollArea } from "$lib/components/ui/scroll-area/index.js";
 
-    export let city_name = ''
-    export let city = ''
-    export let edit_site_settings
+    let {
+		city_name = '',
+		city = '',
+		edit_site_settings
+	} = $props();
 
-    let open = {}
-    let products = []
-    let suggested_products = []
-    let edit_setting
+    let edit_setting = $state({})
+    let open_suggested_products_iiko = $state(false)
+   	let products = $derived(_products_iiko.list || []);
+    let suggested_products = $derived(
+        Array.isArray(_site_settings?.list)
+            ? _site_settings.list.find(s => s.id == 'suggested_products_iiko')?.data ?? []
+            : []
+    );
 
-    beforeUpdate(()=>{
-        products = _products_iiko.list || [];
-        init_site_settings()
-    })
+    let name_suggested_prod = $state('');
 
-    const init_site_settings = () => {
-        if (_site_settings.loading) {
-            suggested_products = _site_settings.list.find(s => s.id == 'suggested_products_iiko')?.data
-        }
-    }
-
-    let name_suggested_prod;
-
-    $: selected_suggested_prod = (products.find((p) => p.name == name_suggested_prod)?.name ?? "Добавить товар")
-    .slice(0, 20) + (products.find((p) => p.name == name_suggested_prod)?.name.length > 20 ? '...' : '');
-
-    // для закрытия popover
-    const closeAndFocusTrigger = (triggerId) => {
-        for (const key in open) {
-            open[key] = false;
-        }
-        tick().then(() => { document.getElementById(triggerId)?.focus() });
-    }
+    let selected_suggested_prod = $derived((products.find((p) => p.name == name_suggested_prod)?.name ?? "Добавить товар")
+    .slice(0, 20) + (products.find((p) => p.name == name_suggested_prod)?.name.length > 20 ? '...' : ''));
+    
 </script>
 
 
 <div class="w-full my-8">
     <p class="font-bold mb-2 scroll-mt-[70px]" id='suggested_products_iiko'>Дополнительные товары IIKO {city_name}</p>
-    <Popover.Root bind:open={open.suggested_products_iiko } let:ids>
-        <Popover.Trigger asChild let:builder class="w-60 !outline-none">
+    <Popover.Root bind:open={open_suggested_products_iiko }>
+        <Popover.Trigger asChild class="w-60 !outline-none">
             <Button
-                builders={[builder]}
                 variant="outline"
                 role="combobox"
                 class="w-60 font-normal justify-between"
             >
                 {selected_suggested_prod}
-                <CaretSort class="ml-2 h-4 w-4 shrink-0 opacity-50" />
+                <ChevronsUpDown class="ml-2 h-4 w-4 shrink-0 opacity-50" />
             </Button>
         </Popover.Trigger>
         <Popover.Content class="p-0">
@@ -72,8 +58,8 @@
                         {#each products as p}
                             <Command.Item
                                 value={p.name}
-                                onSelect={(currentValue) => {
-                                name_suggested_prod = currentValue;
+                                onSelect={() => {
+                                name_suggested_prod = p.name;
                                 if (!suggested_products || !suggested_products?.find(i => i.id == p.iiko_id && i.city == city)) {
                                     edit_site_settings('suggested_products_iiko', { id: p.iiko_id, city })
                                 } else {
@@ -83,7 +69,7 @@
                                         position: 'top-right',
                                     })
                                 }
-                                closeAndFocusTrigger(ids.trigger);
+                                open_suggested_products_iiko = false
                             }}
                             >
                                 <Check class={cn( "mr-2 h-4 w-4",  name_suggested_prod !== p.name && "text-transparent")}  />
@@ -103,12 +89,12 @@
         {#if suggested_products_city.length > 0}
             {#each suggested_products_city as p}
             {@const product = products.find(product => product.iiko_id === p.id)}
-            {@const globalIndex = suggested_products.findIndex(item => item.id === product?.iiko_id && item.city == city)}
+            {@const global_index = suggested_products.findIndex(item => item.id === product?.iiko_id && item.city == city)}
                 <div class="flex items-center space-x-3">
                     <p>{product?.name || '-'}</p>
 
                     <Dialog.Root>
-                        <Dialog.Trigger><CrossCircled class="text-red-600 h-5 w-5 ml-1 !outline-none" /></Dialog.Trigger>
+                        <Dialog.Trigger><XCircle class="text-red-600 h-5 w-5 ml-1 !outline-none" /></Dialog.Trigger>
                         <Dialog.Content class="sm:max-w-[425px]">
                             <Dialog.Header>
                                 <Dialog.Title>Вы уверены, что хотите удалить доп. товар {product?.name || '-'}?</Dialog.Title>
@@ -117,9 +103,9 @@
                               <Dialog.Close class="w-full">
                                 <Button 
                                     class="w-full"
-                                    on:click={()=> {
-                                        if (globalIndex !== -1) {
-                                            edit_site_settings('suggested_products_iiko', null, globalIndex)
+                                    onclick={()=> {
+                                        if (global_index !== -1) {
+                                            edit_site_settings('suggested_products_iiko', null, global_index)
                                             toast.success("Успешно!", {
                                                 description: `Доп. товар "${product?.name || '-'}" удален`,
                                                 action: { label: "Закрыть", onClick: () => console.info("") },

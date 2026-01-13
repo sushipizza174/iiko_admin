@@ -1,6 +1,5 @@
 <script lang="ts">
     // @ts-nocheck
-    import { beforeUpdate } from "svelte";
     import { _site_settings} from "$lib/store.svelte.js"
     import { Input } from "$lib/components/ui/input/index.js";
     import { Button } from "$lib/components/ui/button/index.js";
@@ -16,50 +15,40 @@
     import { Label } from "$lib/components/ui/label/index.js";
     import { ScrollArea } from "$lib/components/ui/scroll-area/index.js";
 
-    export let city_name = ''
-    export let city = ''
-    export let edit_site_settings
+   let {
+		city_name = '',
+		city = '',
+		edit_site_settings
+	} = $props();
 
-    let edit_setting
-    let delivery = []
+    let edit_setting = $state({})
     const delivery_types = [{name: 'Доставка'}, {name: 'Самовывоз'}]
+    let select_type = $derived(delivery_types.find(t => t.name == edit_setting?.type)?.name ?? "Тип доставки")
+    let select_type_add = $derived(delivery_types.find(t => t.name == add_setting?.delivery_type)?.name ?? "Тип доставки")
+    let open;
+    let open_delivery_type = $state(false)
+    let open_delivery_type_edit = $state(false)
 
-    let open = {}
-    let add_setting = {
+    let add_setting = $state({
         delivery_type: null,
         delivery_title: null,
         delivery_add_info: null,
-    }
-
-    let img_to_delete = []
-    let info = [{ text: "" }];
-    let items = [{ min_sum: '', price: '', uuid: ''}]
-
-    beforeUpdate(()=>{
-        init_site_settings()
     })
 
-    const init_site_settings = () => {
-        if (_site_settings.loading) {
-            delivery = _site_settings.list.find(s => s.id == 'delivery')?.data
-        }
-    }
-
-    // для закрытия popover
-    const closeAndFocusTrigger = (triggerId) => {
-        for (const key in open) {
-            open[key] = false;
-        }
-        tick().then(() => { document.getElementById(triggerId)?.focus() });
-    }
-
-    $: selectedTypeDelivery = delivery_types.find(t => t.name == add_setting.delivery_type)?.name ?? "Тип доставки"
-    $: selectedTypeDeliveryEdit = delivery_types.find(t => t.name == edit_setting?.type)?.name ?? "Тип доставки"
-
+    let img_to_delete = []
+    let info = $state([{ text: "" }]);
+    let items = [{ min_sum: '', price: '', uuid: ''}]
+   
+    let delivery = $derived(
+        Array.isArray(_site_settings?.list)
+            ? _site_settings.list.find(s => s.id == 'delivery_iiko')?.data ?? []
+            : []
+    );
     let zones = [
         {id: 0, label: 'город'},
         {id: 1, label: 'отдалённые районы'},
     ]
+    
 </script>
 
 <div class="w-full my-8">
@@ -70,12 +59,12 @@
             {#if delivery_city.length > 0}
                 <div class="flex  gap-5 flex-wrap mt-5 mb-10">
                     {#each delivery_city as setting}
-                    {@const globalIndex = delivery.findIndex(item => item.id === setting.id)}
+                    {@const global_index = delivery.findIndex(item => item.id === setting.id)}
                         <!-- Редактировать -->
                         <Dialog.Root>
                             <div class="flex">
                             <Dialog.Trigger 
-                                on:click={() => {
+                                onclick={() => {
                                     edit_setting = { ...setting };
                                     // if ((!edit_setting.items || edit_setting.items?.length == 0) && edit_setting.type == 'Доставка') {
                                     //     edit_setting.items = [{}]
@@ -100,16 +89,16 @@
                         </div>
                             <Dialog.Content>
                             <Dialog.Header><Dialog.Title>Редактировать</Dialog.Title></Dialog.Header>
-                                <ScrollArea class='{ edit_setting.info?.length > 5 ? 'h-[80vh]' : ''}'>
+                                <ScrollArea class={ edit_setting.info?.length > 5 ? 'h-[80vh]' : ''}>
                                     <!-- <ScrollArea class='{(edit_setting.items?.length > 2 || edit_setting.info?.length > 5) ? 'h-[80vh]' : ''}'> -->
                                     <div class="grid px-1">
                                         <div class="flex flex-col gap-2 mt-2">
                                             <Label for="edit_type_delivery">Тип доставки</Label>
-                                            <Popover.Root bind:open={open.delivery_type_edit} let:ids>
-                                                <Popover.Trigger asChild let:builder class="w-full !outline-none">
-                                                    <Button builders={[builder]} variant="outline" role="combobox" class="w-full font-normal justify-between" id="edit_type_delivery" >
-                                                        {selectedTypeDeliveryEdit}
-                                                        <CaretSort class="ml-2 h-4 w-4 shrink-0 opacity-50" />
+                                            <Popover.Root bind:open={open_delivery_type_edit}>
+                                                <Popover.Trigger asChild class="w-full !outline-none">
+                                                    <Button variant="outline" role="combobox" class="w-full font-normal justify-between" id="edit_type_delivery" >
+                                                        {select_type}
+                                                        <ChevronsUpDown class="ml-2 h-4 w-4 shrink-0 opacity-50" />
                                                     </Button>
                                                 </Popover.Trigger>
                                                 <Popover.Content class="p-0 w-[calc(100%-48px)]">
@@ -121,9 +110,9 @@
                                                                 {#each delivery_types as type}
                                                                     <Command.Item
                                                                         value={type.name}
-                                                                        onSelect={(currentValue) => {
-                                                                            edit_setting.type = currentValue;
-                                                                            closeAndFocusTrigger(ids.trigger);
+                                                                        onSelect={() => {
+                                                                            edit_setting.type = type.name;
+                                                                            open_delivery_type_edit = false
                                                                         }}
                                                                     >
                                                                         <Check class={cn( "mr-2 h-4 w-4",  edit_setting.type !== type.name && "text-transparent")}  />
@@ -150,7 +139,7 @@
                                         {#each edit_setting.info as item}
                                             <Input bind:value={item.text} class="mt-2" />
                                         {/each}
-                                        <Button variant="outline" on:click={() => edit_setting.info = [...edit_setting.info, { text: "" }]} class="mt-2">
+                                        <Button variant="outline" onclick={() => edit_setting.info = [...edit_setting.info, { text: "" }]} class="mt-2">
                                             <PlusCircle class="text-gray-400 h-5 w-5 mr-2" /> Добавить информацию
                                         </Button>
 
@@ -192,7 +181,7 @@
                                             <Dialog.Root>
                                                 <Dialog.Trigger>
                                                     <button class="flex items-center underline underline-offset-4 gap-2 text-red-600">
-                                                        Удалить <CrossCircled class="h-5 w-5 mt-1" />
+                                                        Удалить <XCircle class="h-5 w-5 mt-1" />
                                                     </button>
                                                 </Dialog.Trigger>
                                                 <Dialog.Content>
@@ -200,8 +189,8 @@
                                                         <Dialog.Title>Удалить информацию?</Dialog.Title>
                                                         <Dialog.Description>Вы уверены? Данное действие невозможно отменить.</Dialog.Description>
                                                     </Dialog.Header>
-                                                    <Button on:click={() => {
-                                                        if (globalIndex !== -1) {edit_site_settings('delivery', null, globalIndex); info = [{ text: "" }] }
+                                                    <Button onclick={() => {
+                                                        if (global_index !== -1) {edit_site_settings('delivery_iiko', null, global_index); info = [{ text: "" }] }
                                                     }}>Удалить</Button>
                                                 </Dialog.Content>
                                             </Dialog.Root>
@@ -209,9 +198,9 @@
                                             <Dialog.Close>
                                                 <Button 
                                                     disabled={!edit_setting.title || !edit_setting.type}
-                                                    on:click={() => {
-                                                        if (globalIndex !== -1) {
-                                                            edit_site_settings('delivery', {...edit_setting, city}, null, globalIndex)
+                                                    onclick={() => {
+                                                        if (global_index !== -1) {
+                                                            edit_site_settings('delivery_iiko', {...edit_setting, city}, null, global_index)
                                                             info = [{ text: "" }] 
                                                             toast.success("Успешно!", {
                                                                 description: `Изменения сохранены.`,
@@ -240,17 +229,17 @@
     
     <!-- Добавить информацию о доставке -->
     <Popover.Root>
-        <Popover.Trigger asChild let:builder class="!outline-none">
-            <Button builders={[builder]} variant="outline"><PlusCircle class="text-gray-400 h-4 w-4 mr-2" /> Добавить</Button>
+        <Popover.Trigger asChild class="!outline-none">
+            <Button variant="outline"><PlusCircle class="text-gray-400 h-4 w-4 mr-2" /> Добавить</Button>
         </Popover.Trigger>
         <Popover.Content class="w-[400px]" align="start">
             <p class="font-bold mb-1">Добавить</p>
                 <div class="flex flex-col gap-2 my-2">
-                    <Popover.Root bind:open={open.delivery_type} let:ids>
-                        <Popover.Trigger asChild let:builder class="w-full !outline-none">
-                            <Button builders={[builder]} variant="outline" role="combobox" class="w-full font-normal justify-between">
-                                {selectedTypeDelivery}
-                                <CaretSort class="ml-2 h-4 w-4 shrink-0 opacity-50" />
+                    <Popover.Root bind:open={open_delivery_type}>
+                        <Popover.Trigger asChild class="w-full !outline-none">
+                            <Button variant="outline" role="combobox" class="w-full font-normal justify-between">
+                                {select_type_add}
+                                <ChevronsUpDown class="ml-2 h-4 w-4 shrink-0 opacity-50" />
                             </Button>
                         </Popover.Trigger>
                         <Popover.Content class="p-0">
@@ -262,9 +251,9 @@
                                         {#each delivery_types as type}
                                             <Command.Item
                                                 value={type.name}
-                                                onSelect={(currentValue) => {
-                                                    add_setting.delivery_type = currentValue;
-                                                    closeAndFocusTrigger(ids.trigger);
+                                                onSelect={() => {
+                                                    add_setting.delivery_type = type.name;
+                                                    open_delivery_type = false
                                                 }}
                                             >
                                                 <Check class={cn( "mr-2 h-4 w-4",  add_setting.delivery_type !== type.name && "text-transparent")}  />
@@ -286,7 +275,7 @@
                                 <Input bind:value={item.text} placeholder="Введите одну строку основного текста" class="mb-2" />
                             {/each}
                         </div>
-                        <button on:click={() => info = [...info, { text: "" }]}>
+                        <button onclick={() => info = [...info, { text: "" }]}>
                             <PlusCircle class="text-gray-400 h-5 w-5 mr-2 mt-2" />
                         </button>
                     </div>
@@ -295,10 +284,10 @@
                     
                 <Button 
                     disabled={!add_setting.delivery_type || !add_setting.delivery_title}
-                    on:click={() => {
+                    onclick={() => {
                         const existingIds = delivery?.map(item => item.id) || [];
                         const maxId = existingIds.length > 0 ? Math.max(...existingIds) : 0;
-                        edit_site_settings('delivery', {
+                        edit_site_settings('delivery_iiko', {
                             id: maxId + 1,
                             city,
                             type: add_setting.delivery_type, 

@@ -392,9 +392,8 @@
                                                             <p class="font-semibold text-sm mr-2 mt-0.5">Состав&nbspнабора:</p>
                                                             <div class="flex items-start w-full">
                                                                 <Popover.Root bind:open={open_compose_new}>
-                                                                    <Popover.Trigger asChild let:builder class="w-60 !outline-none">
+                                                                    <Popover.Trigger asChild class="w-60 !outline-none">
                                                                         <Button
-                                                                            builders={[builder]}
                                                                             variant="outline"
                                                                             role="combobox"
                                                                             class="border-none p-0 m-0 hover:bg-transparent shadow-none rounded-full h-min"

@@ -1,6 +1,5 @@
 <script lang="ts">
     // @ts-nocheck
-    import { beforeUpdate } from "svelte";
     import { Input } from "$lib/components/ui/input/index.js";
     import { Button } from "$lib/components/ui/button/index.js";
     import * as Popover from "$lib/components/ui/popover/index.js";
@@ -16,24 +15,20 @@
     import {_config, _site_settings} from "$lib/store.svelte.js"
     import { helpers } from "$lib/helpers.js"
 
-    export let city_name = ''
-    export let city = ''
-    export let edit_site_settings
+    let {
+		city_name = '',
+		city = '',
+		edit_site_settings
+	} = $props();
 
-    let edit_setting
-    let attention_bonus = []
-    let attention_bonus_text
+    let edit_setting = $state()
+    let attention_bonus_text = $state()
 
-    beforeUpdate(()=>{
-        init_site_settings()
-    })
-
-    const init_site_settings = () => {
-        if (_site_settings.loading) {
-            attention_bonus = _site_settings.list.find(s => s.id == 'attention_bonus')?.data
-        }
-    }
-
+    let attention_bonus = $derived(
+        Array.isArray(_site_settings?.list)
+            ? _site_settings.list.find(s => s.id == 'attention_bonus_iiko')?.data ?? []
+            : []
+    );
 </script>
 
 <div class="w-full my-8">
@@ -44,11 +39,11 @@
             {#if attention_bonus_city.length > 0}
                 <div class="flex flex-wrap gap-10">
                     {#each attention_bonus_city as setting}
-                    {@const globalIndex = attention_bonus.findIndex(item => item.id === setting.id)}
+                    {@const global_index = attention_bonus.findIndex(item => item.id === setting.id)}
                         <!-- Редактировать -->
                         <Dialog.Root>
                             <div class="flex">
-                                <Dialog.Trigger on:click={() => edit_setting = { ...setting }} class="!outline-none flex">
+                                <Dialog.Trigger onclick={() => edit_setting = { ...setting }} class="!outline-none flex">
                                     <div class="flex gap-2 items-start justify-between p-2 shadow-md rounded-md w-[340px] border text-start">
                                         <p><span class="font-semibold">Текст:</span> {@html setting.text}</p>
                                         <Pencil class="h-5 w-5 flex-shrink-0" />
@@ -77,9 +72,9 @@
                                                         <Dialog.Description>Вы уверены? Это действие невозможно отменить.</Dialog.Description>
                                                     </Dialog.Header>
                                                     <Dialog.Close class="w-full">
-                                                        <Button class="w-full" on:click={() => {
-                                                            if (globalIndex !== -1) {
-                                                                edit_site_settings('attention_bonus', null, globalIndex);
+                                                        <Button class="w-full" onclick={() => {
+                                                            if (global_index !== -1) {
+                                                                edit_site_settings('attention_bonus_iiko', null, global_index);
                                                                 toast.success("Успешно!", {
                                                                     description: `Изменения сохранены.`,
                                                                     action: { label: "Закрыть",	onClick: () => console.info("") },
@@ -100,9 +95,9 @@
                                             <Dialog.Close>
                                                 <Button 
                                                     disabled={!edit_setting.text}
-                                                    on:click={() => {
-                                                        if (globalIndex !== -1) {
-                                                            edit_site_settings('attention_bonus', {...edit_setting, city}, null, globalIndex);
+                                                    onclick={() => {
+                                                        if (global_index !== -1) {
+                                                            edit_site_settings('attention_bonus_iiko', {...edit_setting, city}, null, global_index);
                                                             toast.success("Успешно!", {
                                                                 description: `Изменения сохранены.`,
                                                                 action: { label: "Закрыть",	onClick: () => console.info("") },
@@ -130,8 +125,8 @@
     
     <!-- Добавить -->
     <Popover.Root>
-        <Popover.Trigger asChild let:builder class="!outline-none">
-            <Button builders={[builder]} variant="outline" class="mt-3"><PlusCircle class="text-gray-400 h-4 w-4 mr-2" /> Добавить</Button>
+        <Popover.Trigger asChild  class="!outline-none">
+            <Button variant="outline" class="mt-3"><PlusCircle class="text-gray-400 h-4 w-4 mr-2" /> Добавить</Button>
         </Popover.Trigger>
         <Popover.Content class="w-max" align="start">
             <p class="font-bold mb-1">Добавить</p>
@@ -139,11 +134,11 @@
             <!-- <p class="text-sm mt-1">* добавь в текст &lt;br /&gt; для переноса строки в тексте</p> -->
                     
             <Button disabled={ !attention_bonus_text}
-                on:click={() => {
-                    const existingIds = attention_bonus?.map(item => item.id) || [];
-                    const maxId = existingIds.length > 0 ? Math.max(...existingIds) : 0;
-                    edit_site_settings('attention_bonus', {	
-                        id: maxId + 1,
+                onclick={() => {
+                    const existing_ids = attention_bonus?.map(item => item.id) || [];
+                    const max_id = existing_ids.length > 0 ? Math.max(...existing_ids) : 0;
+                    edit_site_settings('attention_bonus_iiko', {	
+                        id: max_id + 1,
                         city, 
                         text: attention_bonus_text 
                     })}} >
